@@ -102,7 +102,9 @@ public with sharing class SmartFactory {
 	}
 	
 	static boolean isPersonAccountField(Schema.DescribeFieldResult fieldDescribe) {
-		return fieldDescribe.getName().startsWith('Person') && !fieldDescribe.isCustom();
+                Boolean CustomPerson = fieldDescribe.getName().substring(fieldDescribe.getName().length()-2,fieldDescribe.getName().length()) == 'pc' && fieldDescribe.isCustom();
+                Boolean StandardPerson = fieldDescribe.getName().startsWith('Person') && !fieldDescribe.isCustom();
+		return (CustomPerson || StandardPerson);
 	}
 	
 	static void setFieldValue(SObject obj, Schema.SObjectField field, boolean cascade) {
