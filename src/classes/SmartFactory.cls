@@ -26,7 +26,7 @@ public with sharing class SmartFactory {
 	}
 	
 	public static SObject createSObject(string objectType, boolean cascade) {
-		System.debug('objectType ' + objectType);
+		System.debug('objectType ' + objectType); 
 		
 		Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe(); 
 		
@@ -42,7 +42,7 @@ public with sharing class SmartFactory {
 		// Or Apex to Apex call using WSDL or REST API
 		// Also vote for this idea for dynamic casting: https://sites.secure.force.com/success/ideaView?id=08730000000BpwmAAC
 		obj = SmartFactoryHelper.newSObject(token);
-		fieldMap = SmartFactoryHelper.getFieldMap(token);
+		fieldMap = globalDescribe.get(objectType).getDescribe().fields.getMap();
 		
 		for (Schema.SObjectField field : fieldMap.values()) {
 			setFieldValue(obj, field, cascade);
@@ -58,7 +58,6 @@ public with sharing class SmartFactory {
 		string body = '\npublic with sharing class SmartFactoryHelper {\n';
 		
 		body += generateHelperNewSObject();
-		body += generateHelperGetFieldMap();
 
 		body += '} // SmartFactoryHelper\n';
 		
@@ -75,19 +74,6 @@ public with sharing class SmartFactory {
 		
 		body += 'throw new UnsupportedObjectTypeException(\'Unsupported ObjectType \' + token);\n' +
 			'} // newSObject\n\n';
-			
-		return body;		
-	}
-	
-	static string generateHelperGetFieldMap() {
-		string body = 'public static Map<String, Schema.SObjectField> getFieldMap(Schema.sObjectType token) {\n';
-			
-		for (string sObjectType : Schema.getGlobalDescribe().keySet()) {
-			body += 'if (token.getDescribe().getName() == \'' + sObjectType + '\') { return Schema.sObjectType.' + sObjectType + '.fields.getMap(); }\n';
-		}
-		
-		body += 'throw new UnsupportedObjectTypeException(\'Unsupported ObjectType \' + token);\n' +
-			'} // getFieldMap\n\n';
 			
 		return body;		
 	}
