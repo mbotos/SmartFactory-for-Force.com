@@ -13,6 +13,8 @@ see Future Work if you'd like to contribute to developing into a fully functiona
 Installation
 ------------
 
+For an easy, 1-click installation: [SmartFactory for Force.com on Code Share](http://developer.force.com/codeshare/ProjectPage?id=a063000000Db0CSAAZ) 
+
 To use the source code with a Salesforce org: [How To Use Github and the Force.com IDE](http://blog.sforce.com/sforce/2011/04/how-to-use-git-github-force-com-ide-open-source-labs-apps.html)
 
 Usage
