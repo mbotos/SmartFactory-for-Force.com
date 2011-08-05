@@ -38,10 +38,7 @@ public with sharing class SmartFactory {
 		SObject obj;		
 		Map<String, Schema.SObjectField> fieldMap;
 		
-		// TODO create external service to dynamically generate SmartFactoryHelper class
-		// Or Apex to Apex call using WSDL or REST API
-		// Also vote for this idea for dynamic casting: https://sites.secure.force.com/success/ideaView?id=08730000000BpwmAAC
-		obj = SmartFactoryHelper.newSObject(token);
+		obj = globalDescribe.get(objectType).newSObject();
 		fieldMap = globalDescribe.get(objectType).getDescribe().fields.getMap();
 		
 		for (Schema.SObjectField field : fieldMap.values()) {
@@ -50,32 +47,6 @@ public with sharing class SmartFactory {
 		
 		System.debug('SmartFactory object created: ' + obj);
 		return obj;
-	}
-	
-	public static string generateHelperClass() {
-		Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe();
-		
-		string body = '\npublic with sharing class SmartFactoryHelper {\n';
-		
-		body += generateHelperNewSObject();
-
-		body += '} // SmartFactoryHelper\n';
-		
-		System.debug(body);
-		return body;
-	}
-	
-	static string generateHelperNewSObject() {
-		string body = 'public static SObject newSObject(Schema.sObjectType token) {\n';
-			
-		for (string sObjectType : Schema.getGlobalDescribe().keySet()) {
-			body += 'if (token.getDescribe().getName() == \'' + sObjectType + '\') { return (' + sObjectType + ')token.newSObject(); }\n';
-		}
-		
-		body += 'throw new UnsupportedObjectTypeException(\'Unsupported ObjectType \' + token);\n' +
-			'} // newSObject\n\n';
-			
-		return body;		
 	}
 	
 	static boolean isExcludedField(Schema.DescribeFieldResult fieldDescribe) {

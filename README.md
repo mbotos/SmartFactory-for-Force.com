@@ -20,7 +20,7 @@ To use the source code with a Salesforce org: [How To Use Github and the Force.c
 Usage
 -----  
 
-To use with standard objects, no setup is required. Just use SmartFactory in your tests to create objects:
+Just use SmartFactory in your tests to create objects:
 
 `Account account = (Account)SmartFactory.createSObject('Account');` 
 
@@ -28,13 +28,7 @@ To cascade and create lookup objects:
 
 `Contact contact = (Contact)SmartFactory.createSObject('Contact', true);`
 
-To use with custom objects, you'll need to regenerate the SmartFactoryHelper class:
-
-1. In System Log, run "SmartFactory.generateHelperClass();"
-2. From the debug output, copy from "public with sharing class SmartFactoryHelper {" to "} // SmartFactoryHelper"   
-3. Paste into the class SmartFactoryHelper in the Eclipse Force.com IDE or Setup > Develop > Apex Classes
-
-SmartFactoryHelper now includes your custom objects, which can be used as follows:
+The same syntax is used for custom objects:
 
 `Custom_Object__c customObject = (Custom_Object__c)SmartFactory.createSObject('Custom_Object__c');`   
 
@@ -46,12 +40,8 @@ Future Work
 TODO comments note areas for additional development. Key areas include:
 
 1. Default field values for other Schema.DisplayTypes    
-2. Create external service to dynamically generate SmartFactoryHelper class using Force.com Metadata API   
-3. Create an app and setup tab to call the external service
-4. Provide an field override map that allows callers to specify default values for specific objects and fields    
-5. Provide a recursion limit for lookups to the same object type   
-
-Also, please vote for [Dynamic Class Instantiation and Casting on Ideaexchange](https://sites.secure.force.com/success/ideaView?id=08730000000BpwmAAC), which would eliminate the need for a generated helper class.
+2. Provide an field override map that allows callers to specify default values for specific objects and fields    
+3. Provide a recursion limit for lookups to the same object type   
 
 Help and Discussion
 -------------------

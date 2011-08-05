@@ -44,12 +44,4 @@ private class SmartFactory_Test {
 			System.assert(true);
 		}
 	}
-	
-	static testMethod void generatedHelperClassHasAllObjects() {
-		string body = SmartFactory.generateHelperClass();
-		
-		for (string sObjectType : Schema.getGlobalDescribe().keySet()) {
-			System.assert(body.contains(sObjectType));
-		}		
-	}
 }
