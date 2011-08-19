@@ -17,7 +17,7 @@
 public with sharing class SmartFactory {
 	// Key : SobjectAPIName  For ex. Account 
 	// Value : Map<String, Schema.SObjectField>, field map (k:fieldname, v:Schema.Sobjectfield)
-	private static final Map<String, Map<String, Schema.SObjectField>> FIELDMAP_CACHE = new Map<String, Map<String, Schema.SObjectField>>();
+	private static final Map<String, Map<String, Schema.SObjectField>> FieldMapCache = new Map<String, Map<String, Schema.SObjectField>>();
 	
 	private static final Map<String, Schema.SObjectType> GlobalDescribe = Schema.getGlobalDescribe();
 	
@@ -58,12 +58,13 @@ public with sharing class SmartFactory {
 	public static  Map<String, Schema.SObjectField> fieldMapFor(String objectType) {
 		Map<String, Schema.SObjectField> fieldMap = null;
 		String normalizedObjectType = objectType.toLowerCase();
-		if (FIELDMAP_CACHE.containsKey(normalizedObjectType)) {
-			fieldMap = FIELDMAP_CACHE.get(normalizedObjectType);
+		
+		if (FieldMapCache.containsKey(normalizedObjectType)) {
+			fieldMap = FieldMapCache.get(normalizedObjectType);
 		} else {
 			fieldMap = Schema.getGlobalDescribe().get(objectType).getDescribe().fields.getMap();
 			// cache it for next use
-			FIELDMAP_CACHE.put(normalizedObjectType, fieldMap);
+			FieldMapCache.put(normalizedObjectType, fieldMap);
 		}
 		return fieldMap;
 	}
