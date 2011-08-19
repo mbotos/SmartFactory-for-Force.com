@@ -19,6 +19,8 @@ public with sharing class SmartFactory {
 	// Value : Map<String, Schema.SObjectField>, field map (k:fieldname, v:Schema.Sobjectfield)
 	private static final Map<String, Map<String, Schema.SObjectField>> FIELDMAP_CACHE = new Map<String, Map<String, Schema.SObjectField>>();
 	
+	private static final Map<String, Schema.SObjectType> GlobalDescribe = Schema.getGlobalDescribe();
+	
 	// can't map by Schema.sObjectType, use object name string instead
 	static map<string, set<string>> excludedFields = new map<string, set<string>>{
 		'All' => new set<string>{'OwnerId', 'LastModifiedById'},
@@ -30,29 +32,18 @@ public with sharing class SmartFactory {
 	}
 	
 	public static SObject createSObject(string objectType, boolean cascade) {
-		//System.debug('objectType ' + objectType); 
-		
-		Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe(); 
-		
-		Schema.sObjectType token = globalDescribe.get(objectType);
+		Schema.sObjectType token = GlobalDescribe.get(objectType);
 		if (token == null) {
 			throw new UnsupportedObjectTypeException('Unsupported ObjectType ' + objectType);
 		}
-		//System.debug('token ' + token);
-		SObject obj;		
-		Map<String, Schema.SObjectField> fieldMap;
 		
-		obj = globalDescribe.get(objectType).newSObject();
-		
-		// Abhinav: using the cache here to save field describes.
-		//fieldMap = globalDescribe.get(objectType).getDescribe().fields.getMap();
-		fieldMap = fieldMapFor(objectType);
+		SObject obj = token.newSObject();		
+		Map<String, Schema.SObjectField> fieldMap = fieldMapFor(objectType);
 		
 		for (Schema.SObjectField field : fieldMap.values()) {
 			setFieldValue(obj, field, cascade);
 		}
 		
-		//System.debug('SmartFactory object created: ' + obj);
 		return obj;
 	}
 	
