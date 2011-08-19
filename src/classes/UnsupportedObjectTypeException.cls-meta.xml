@@ -1,15 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>20.0</apiVersion>
-    <packageVersions>
-        <majorNumber>1</majorNumber>
-        <minorNumber>0</minorNumber>
-        <namespace>oauthplayground</namespace>
-    </packageVersions>
-    <packageVersions>
-        <majorNumber>1</majorNumber>
-        <minorNumber>0</minorNumber>
-        <namespace>packageustest</namespace>
-    </packageVersions>
     <status>Active</status>
 </ApexClass>
