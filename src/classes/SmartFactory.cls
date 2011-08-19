@@ -15,6 +15,10 @@
 */   
 
 public with sharing class SmartFactory {
+	// Key : SobjectAPIName  For ex. Account 
+	// Value : Map<String, Schema.SObjectField>, field map (k:fieldname, v:Schema.Sobjectfield)
+	private static final Map<String, Map<String, Schema.SObjectField>> FIELDMAP_CACHE = new Map<String, Map<String, Schema.SObjectField>>();
+	
 	// can't map by Schema.sObjectType, use object name string instead
 	static map<string, set<string>> excludedFields = new map<string, set<string>>{
 		'All' => new set<string>{'OwnerId', 'LastModifiedById'},
@@ -26,7 +30,7 @@ public with sharing class SmartFactory {
 	}
 	
 	public static SObject createSObject(string objectType, boolean cascade) {
-		System.debug('objectType ' + objectType); 
+		//System.debug('objectType ' + objectType); 
 		
 		Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe(); 
 		
@@ -34,19 +38,43 @@ public with sharing class SmartFactory {
 		if (token == null) {
 			throw new UnsupportedObjectTypeException('Unsupported ObjectType ' + objectType);
 		}
-		System.debug('token ' + token);
+		//System.debug('token ' + token);
 		SObject obj;		
 		Map<String, Schema.SObjectField> fieldMap;
 		
 		obj = globalDescribe.get(objectType).newSObject();
-		fieldMap = globalDescribe.get(objectType).getDescribe().fields.getMap();
+		
+		// Abhinav: using the cache here to save field describes.
+		//fieldMap = globalDescribe.get(objectType).getDescribe().fields.getMap();
+		fieldMap = fieldMapFor(objectType);
 		
 		for (Schema.SObjectField field : fieldMap.values()) {
 			setFieldValue(obj, field, cascade);
 		}
 		
-		System.debug('SmartFactory object created: ' + obj);
+		//System.debug('SmartFactory object created: ' + obj);
 		return obj;
+	}
+	
+	/**
+		Returns a field map for a given sobject. 
+		
+		Note : this method is kept public for Test cases to share the same field map info, without requiring a field desribe.
+		
+		@param objectType sobject api name for ex. Account
+		@returns FieldMap [Key:FieldName,Value:Schema.SObjectField]
+	*/
+	public static  Map<String, Schema.SObjectField> fieldMapFor(String objectType) {
+		Map<String, Schema.SObjectField> fieldMap = null;
+		String normalizedObjectType = objectType.toLowerCase();
+		if (FIELDMAP_CACHE.containsKey(normalizedObjectType)) {
+			fieldMap = FIELDMAP_CACHE.get(normalizedObjectType);
+		} else {
+			fieldMap = Schema.getGlobalDescribe().get(objectType).getDescribe().fields.getMap();
+			// cache it for next use
+			FIELDMAP_CACHE.put(normalizedObjectType, fieldMap);
+		}
+		return fieldMap;
 	}
 	
 	static boolean isExcludedField(Schema.DescribeFieldResult fieldDescribe) {
@@ -66,7 +94,7 @@ public with sharing class SmartFactory {
 	
 	static void setFieldValue(SObject obj, Schema.SObjectField field, boolean cascade) {
 		Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
-
+		
 		if (fieldDescribe.isCreateable() && 
 			!fieldDescribe.getName().endsWith('pc') && // lookup fields
 			!isExcludedField(fieldDescribe) &&
@@ -74,7 +102,7 @@ public with sharing class SmartFactory {
 			!isPersonAccountField(fieldDescribe)) {
 				
 			if (fieldDescribe.getType() == Schema.DisplayType.String) {
-				System.debug('Setting field ' + fieldDescribe.getName());
+				//System.debug('Setting field ' + fieldDescribe.getName());
 				obj.put(field, 'a'); 
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Reference) {
 				string referenceObjectType = fieldDescribe.getReferenceTo()[0].getDescribe().getName();
@@ -83,7 +111,7 @@ public with sharing class SmartFactory {
 					setRecordType(obj);
 				} else if (cascade && referenceObjectType != obj.getSObjectType().getDescribe().getName()) {
 					// TODO avoid infinite loop for same-type references
-					System.debug('Creating reference to ' + referenceObjectType);
+					//System.debug('Creating reference to ' + referenceObjectType);
 					SObject reference = createSObject(referenceObjectType);
 					insert reference;
 					obj.put(field, reference.Id);
@@ -96,7 +124,7 @@ public with sharing class SmartFactory {
 		List<Schema.RecordTypeInfo> recordTypes = obj.getSObjectType().getDescribe().getRecordTypeInfos();
 		
 		if (recordTypes.size() > 1) { // all objects have default Master type
-			System.debug('RecordTypes ' + recordTypes);
+			//System.debug('RecordTypes ' + recordTypes);
 			for (Schema.RecordTypeInfo recordType : recordTypes) {
 				if (recordType.isAvailable() && recordType.isDefaultRecordTypeMapping()) {
 					obj.put('RecordTypeId', recordType.getRecordTypeId());
