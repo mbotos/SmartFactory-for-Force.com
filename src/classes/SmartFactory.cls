@@ -38,9 +38,8 @@ public with sharing class SmartFactory {
 		}
 		
 		SObject obj = token.newSObject();		
-		Map<String, Schema.SObjectField> fieldMap = fieldMapFor(objectType);
 		
-		for (Schema.SObjectField field : fieldMap.values()) {
+		for (Schema.SObjectField field : fieldMapFor(objectType).values()) {
 			setFieldValue(obj, field, cascade);
 		}
 		
@@ -62,10 +61,11 @@ public with sharing class SmartFactory {
 		if (FieldMapCache.containsKey(normalizedObjectType)) {
 			fieldMap = FieldMapCache.get(normalizedObjectType);
 		} else {
-			fieldMap = Schema.getGlobalDescribe().get(objectType).getDescribe().fields.getMap();
+			fieldMap = GlobalDescribe.get(objectType).getDescribe().fields.getMap();
 			// cache it for next use
 			FieldMapCache.put(normalizedObjectType, fieldMap);
 		}
+		
 		return fieldMap;
 	}
 	
@@ -79,8 +79,8 @@ public with sharing class SmartFactory {
 	}
 	
 	static boolean isPersonAccountField(Schema.DescribeFieldResult fieldDescribe) {
-                Boolean CustomPerson = fieldDescribe.getName().substring(fieldDescribe.getName().length()-2,fieldDescribe.getName().length()) == 'pc' && fieldDescribe.isCustom();
-                Boolean StandardPerson = fieldDescribe.getName().startsWith('Person') && !fieldDescribe.isCustom();
+        Boolean CustomPerson = fieldDescribe.getName().substring(fieldDescribe.getName().length()-2,fieldDescribe.getName().length()) == 'pc' && fieldDescribe.isCustom();
+        Boolean StandardPerson = fieldDescribe.getName().startsWith('Person') && !fieldDescribe.isCustom();
 		return (CustomPerson || StandardPerson);
 	}
 	
