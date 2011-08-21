@@ -55,4 +55,12 @@ private class SmartFactory_Test {
 		for (Integer idx = 0; idx <= 101; idx++)
     		Contact cont = (Contact)SmartFactory.createSObject('Contact');    		
     }
+    
+    static testMethod void createAllObjectTypes() {
+    	try {
+	    	for (string sObjectType : Schema.getGlobalDescribe().keySet()) {
+	    		System.assert(SmartFactory.createSObject(sObjectType) != null);
+	    	}
+    	} catch (Exception ex) {}
+    }
 }
