@@ -16,6 +16,10 @@
 
 @isTest
 private class SmartFactory_Test {
+	static {
+		SmartFactory.FillAllFields = true; // increase test coverage without creating custom objects
+	}
+	
 	static testMethod void createsSingleObjectWithSingleRequiredStringField() {
 		Account account = (Account)SmartFactory.createSObject('Account');
 		insert account;

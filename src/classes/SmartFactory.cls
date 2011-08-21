@@ -15,11 +15,17 @@
 */   
 
 public with sharing class SmartFactory {
+	public static boolean FillAllFields = false;
+	
 	// Key : SobjectAPIName  For ex. Account 
 	// Value : Map<String, Schema.SObjectField>, field map (k:fieldname, v:Schema.Sobjectfield)
 	private static final Map<String, Map<String, Schema.SObjectField>> FieldMapCache = new Map<String, Map<String, Schema.SObjectField>>();
 	
 	private static final Map<String, Schema.SObjectType> GlobalDescribe = Schema.getGlobalDescribe();
+
+	// Key: sobject.field
+	// Value: first picklist value
+	private static final Map<String, String> DefaultPicklistValue = new Map<String, String>();
 	
 	// can't map by Schema.sObjectType, use object name string instead
 	static map<string, set<string>> excludedFields = new map<string, set<string>>{
@@ -69,6 +75,18 @@ public with sharing class SmartFactory {
 		return fieldMap;
 	}
 	
+	static string getDefaultPicklistValue(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
+		string key = obj.getSObjectType() + '.' + fieldDescribe.getName();
+		
+		if (!DefaultPicklistValue.containsKey(key)) {
+			List<Schema.PicklistEntry> entries = fieldDescribe.getPicklistValues();
+			string value = entries.size() > 0 ? entries[0].getValue() : null;
+			DefaultPicklistValue.put(key, value);
+		}
+		
+		return DefaultPicklistValue.get(key);
+	}
+	
 	static boolean isExcludedField(Schema.DescribeFieldResult fieldDescribe) {
 		return excludedFields.get('All').contains(fieldDescribe.getName());
 	}
@@ -79,8 +97,8 @@ public with sharing class SmartFactory {
 	}
 	
 	static boolean isPersonAccountField(Schema.DescribeFieldResult fieldDescribe) {
-        Boolean CustomPerson = fieldDescribe.getName().substring(fieldDescribe.getName().length()-2,fieldDescribe.getName().length()) == 'pc' && fieldDescribe.isCustom();
-        Boolean StandardPerson = fieldDescribe.getName().startsWith('Person') && !fieldDescribe.isCustom();
+        Boolean CustomPerson = fieldDescribe.isCustom() && fieldDescribe.getName().endsWith('pc');
+        Boolean StandardPerson = !fieldDescribe.isCustom() && fieldDescribe.getName().startsWith('Person');
 		return (CustomPerson || StandardPerson);
 	}
 	
@@ -88,13 +106,41 @@ public with sharing class SmartFactory {
 		Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
 		
 		if (fieldDescribe.isCreateable() && 
-			!fieldDescribe.getName().endsWith('pc') && // lookup fields
+			((!fieldDescribe.isNillable() || FillAllFields) || 
+				(fieldDescribe.getType() == Schema.DisplayType.Reference && cascade)) && // always fill references with cascade
 			!isExcludedField(fieldDescribe) &&
 			!isExcludedField(obj, fieldDescribe) &&
 			!isPersonAccountField(fieldDescribe)) {
 				
-			if (fieldDescribe.getType() == Schema.DisplayType.String) {
-				//System.debug('Setting field ' + fieldDescribe.getName());
+			if (fieldDescribe.getType() == Schema.DisplayType.base64) {
+				obj.put(field, blob.valueOf('a'));
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Boolean) {
+				obj.put(field, false);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Combobox) {
+				obj.put(field, 'a');
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Currency) {
+				obj.put(field, 0);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Date) {
+				obj.put(field, Date.today());
+			} else if (fieldDescribe.getType() == Schema.DisplayType.DateTime) {
+				obj.put(field, DateTime.now());
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Double) {
+				obj.put(field, 0.0);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Email) {
+				obj.put(field, 'test@test.com');
+			} else if (fieldDescribe.getType() == Schema.DisplayType.EncryptedString) {
+				obj.put(field, 's');
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Integer) {
+				obj.put(field, 0);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.MultiPicklist) {
+				obj.put(field, getDefaultPicklistValue(obj, fieldDescribe));
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Percent) {
+				obj.put(field, 0);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Phone) {
+				obj.put(field, '123-456-7890');
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Picklist) {
+				obj.put(field, getDefaultPicklistValue(obj, fieldDescribe));
+			} else if (fieldDescribe.getType() == Schema.DisplayType.String) {
 				obj.put(field, 'a'); 
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Reference) {
 				string referenceObjectType = fieldDescribe.getReferenceTo()[0].getDescribe().getName();
@@ -108,7 +154,13 @@ public with sharing class SmartFactory {
 					insert reference;
 					obj.put(field, reference.Id);
 				}
-			} // TODO put field values for rest of Schema.DisplayTypes
+			} else if (fieldDescribe.getType() == Schema.DisplayType.TextArea) {
+				obj.put(field, 'a'); 
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Time) {
+				obj.put(field, Time.newInstance(0, 0, 0, 0)); 
+			} else if (fieldDescribe.getType() == Schema.DisplayType.URL) {
+				obj.put(field, 'http://test.com'); 
+			}
 		}	
 	}
 	

@@ -39,9 +39,8 @@ Future Work
 
 TODO comments note areas for additional development. Key areas include:
 
-1. Default field values for other Schema.DisplayTypes    
-2. Provide an field override map that allows callers to specify default values for specific objects and fields    
-3. Provide a recursion limit for lookups to the same object type   
+1. Provide an field override map that allows callers to specify default values for specific objects and fields    
+2. Provide a recursion limit for lookups to the same object type   
 
 Help and Discussion
 -------------------
