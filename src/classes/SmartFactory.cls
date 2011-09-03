@@ -19,10 +19,10 @@ public with sharing class SmartFactory {
 	
 	// Key : SobjectAPIName  For ex. Account 
 	// Value : Map<String, Schema.SObjectField>, field map (k:fieldname, v:Schema.Sobjectfield)
-	public static final Map<String, Map<String, Schema.SObjectField>> FieldMapCache = new Map<String, Map<String, Schema.SObjectField>>();
-
-	private static final Map<String, Schema.SObjectType> GlobalDescribe = Schema.getGlobalDescribe();
+	private static final Map<String, Map<String, Schema.SObjectField>> FieldMapCache = new Map<String, Map<String, Schema.SObjectField>>();
 	
+	private static final Map<String, Schema.SObjectType> GlobalDescribe = Schema.getGlobalDescribe();
+
 	// Key: sobject.field
 	// Value: first picklist value
 	private static final Map<String, String> DefaultPicklistValue = new Map<String, String>();
@@ -33,77 +33,20 @@ public with sharing class SmartFactory {
 		'Account' => new set<string>{'FirstName', 'LastName'}
 	};
 	
-	// kept public so that test cases can change this if required
-	// Key : DisplayType name
-	// Value : Object value for the field
-	public static final Map<String, Object> FieldTypeValueMapping = 
-										new Map<String, Object> {
-												Schema.DisplayType.base64.name() => blob.valueOf('a'),
-												Schema.DisplayType.Boolean.name() => false,
-												Schema.DisplayType.Combobox.name() => 'a',
-												Schema.DisplayType.Currency.name() => 0,
-												Schema.DisplayType.Date.name() => System.today(),
-												Schema.DisplayType.Datetime.name() => System.now(),
-												Schema.DisplayType.Double.name() => 0.0,
-												Schema.DisplayType.Email.name() => 'test@test.com',
-												Schema.DisplayType.EncryptedString.name() => 's',
-												Schema.DisplayType.Integer.name() => 0,
-												Schema.DisplayType.Percent.name() => 0,
-												Schema.DisplayType.Phone.name() => '123-456-7890',
-												Schema.DisplayType.String.name() => 's',
-												Schema.DisplayType.TextArea.name() => 's',
-												Schema.DisplayType.Time.name() => Time.newInstance(0, 0, 0, 0),
-												Schema.DisplayType.URL.name() => 'http:www.force.com'
-											}; 	
-	
-	// Cache for Sobject Templates prepopulated with default values
-	// This cache will be applicable for objects created with cascade option as false
-	// Key : ObjectType Name
-	// Value : The SObject instance										
-	static final Map<String, Sobject> TemplateSobjectCache = new Map<String, Sobject>();
-	
 	public static SObject createSObject(string objectType) {
-		// initialize with empty mapping
-		return createSObject(objectType, new Map<String,Object>());
+		return createSObject(objectType, false);
 	}
-	
-	public static SObject createSObject(string objectType, Map<String, Object> fieldNameValueMapping) {
-		return createSObject(objectType, false, fieldNameValueMapping);
-	}	
 	
 	public static SObject createSObject(string objectType, boolean cascade) {
-		// initialize with empty mapping
-		return createSObject(objectType, cascade, new Map<String,Object>());
-	}
-	
-	public static SObject createSObject(string objectType, boolean cascade, Map<String, Object> fieldNameValueMapping) {
-		SObject obj = null;
-		if (!cascade && TemplateSobjectCache.containsKey(objectType.toLowerCase())) {
-			// if no cascading is there, we can easily cache the template object and override it as required.
-			// no caching done for objects with references.
-			obj = ((SObject)TemplateSobjectCache.get(objectType.toLowerCase())).clone();
-		} else {
-			Schema.sObjectType token = GlobalDescribe.get(objectType);
-			if (token == null) {
-				throw new UnsupportedObjectTypeException('Unsupported ObjectType ' + objectType);
-			}
-					
-			obj = token.newSObject();		
-			
-			for (Schema.SObjectField field : fieldMapFor(objectType).values()) {
-				setFieldValue(obj, field, cascade);
-			}			
-			
-			if (!cascade) {
-				// If not cascading the references cache it.
-				// Cache the cloned object, as later on user applied override 
-				// might change it
-				TemplateSobjectCache.put(objectType.toLowerCase(), obj.clone());
-			}
+		Schema.sObjectType token = GlobalDescribe.get(objectType);
+		if (token == null) {
+			throw new UnsupportedObjectTypeException('Unsupported ObjectType ' + objectType);
 		}
 		
-		for (String key : fieldNameValueMapping.keyset()) {
-			obj.put(key, fieldNameValueMapping.get(key));
+		SObject obj = token.newSObject();		
+		
+		for (Schema.SObjectField field : fieldMapFor(objectType).values()) {
+			setFieldValue(obj, field, cascade);
 		}
 		
 		return obj;
@@ -117,7 +60,7 @@ public with sharing class SmartFactory {
 		@param objectType sobject api name for ex. Account
 		@returns FieldMap [Key:FieldName,Value:Schema.SObjectField]
 	*/
-	public static Map<String, Schema.SObjectField> fieldMapFor(String objectType) {
+	public static  Map<String, Schema.SObjectField> fieldMapFor(String objectType) {
 		Map<String, Schema.SObjectField> fieldMap = null;
 		String normalizedObjectType = objectType.toLowerCase();
 		
@@ -130,33 +73,19 @@ public with sharing class SmartFactory {
 		}
 		
 		return fieldMap;
-	}	
+	}
 	
-	/**
-		Sept 3, 2011 : Fixed the bug to fetch the associated default value, instead of value at index zero
-	*/
-	public static string getDefaultPicklistValue(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
+	static string getDefaultPicklistValue(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
 		string key = obj.getSObjectType() + '.' + fieldDescribe.getName();
 		
 		if (!DefaultPicklistValue.containsKey(key)) {
 			List<Schema.PicklistEntry> entries = fieldDescribe.getPicklistValues();
-			string value = null;
-			for (Schema.Picklistentry entry : entries) {
-				// TODO check for entry.isActive() here
-				if (entry.isDefaultValue()) {
-					value = entry.getValue();
-					break;
-				}
-			}
-			// if somehow no default value is there
-			if (value == null)
-				value = entries.size() > 0 ? entries[0].getValue() : null;
-			
+			string value = entries.size() > 0 ? entries[0].getValue() : null;
 			DefaultPicklistValue.put(key, value);
 		}
 		
 		return DefaultPicklistValue.get(key);
-	}		
+	}
 	
 	static boolean isExcludedField(Schema.DescribeFieldResult fieldDescribe) {
 		return excludedFields.get('All').contains(fieldDescribe.getName());
@@ -171,7 +100,7 @@ public with sharing class SmartFactory {
         Boolean CustomPerson = fieldDescribe.isCustom() && fieldDescribe.getName().endsWith('pc');
         Boolean StandardPerson = !fieldDescribe.isCustom() && fieldDescribe.getName().startsWith('Person');
 		return (CustomPerson || StandardPerson);
-	} 
+	}
 	
 	static void setFieldValue(SObject obj, Schema.SObjectField field, boolean cascade) {
 		Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
@@ -182,13 +111,40 @@ public with sharing class SmartFactory {
 			!isExcludedField(fieldDescribe) &&
 			!isExcludedField(obj, fieldDescribe) &&
 			!isPersonAccountField(fieldDescribe)) {
-			
-			if (FieldTypeValueMapping.containsKey(fieldDescribe.getType().name())) {
-				obj.put(field, FieldTypeValueMapping.get(fieldDescribe.getType().name()));
+				
+			if (fieldDescribe.getType() == Schema.DisplayType.base64) {
+				obj.put(field, blob.valueOf('a'));
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Boolean) {
+				obj.put(field, false);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Combobox) {
+				obj.put(field, 'a');
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Currency) {
+				obj.put(field, 0);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Date) {
+				obj.put(field, Date.today());
+			} else if (fieldDescribe.getType() == Schema.DisplayType.DateTime) {
+				obj.put(field, DateTime.now());
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Double) {
+				obj.put(field, 0.0);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Email) {
+				obj.put(field, 'test@test.com');
+			} else if (fieldDescribe.getType() == Schema.DisplayType.EncryptedString) {
+				obj.put(field, 's');
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Integer) {
+				obj.put(field, 0);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.MultiPicklist) {
+				obj.put(field, getDefaultPicklistValue(obj, fieldDescribe));
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Percent) {
+				obj.put(field, 0);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Phone) {
+				obj.put(field, '123-456-7890');
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Picklist) {
 				obj.put(field, getDefaultPicklistValue(obj, fieldDescribe));
+			} else if (fieldDescribe.getType() == Schema.DisplayType.String) {
+				obj.put(field, 'a'); 
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Reference) {
 				string referenceObjectType = fieldDescribe.getReferenceTo()[0].getDescribe().getName();
+				
 				if (referenceObjectType == 'RecordType') {
 					setRecordType(obj);
 				} else if (cascade && referenceObjectType != obj.getSObjectType().getDescribe().getName()) {
@@ -198,6 +154,12 @@ public with sharing class SmartFactory {
 					insert reference;
 					obj.put(field, reference.Id);
 				}
+			} else if (fieldDescribe.getType() == Schema.DisplayType.TextArea) {
+				obj.put(field, 'a'); 
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Time) {
+				obj.put(field, Time.newInstance(0, 0, 0, 0)); 
+			} else if (fieldDescribe.getType() == Schema.DisplayType.URL) {
+				obj.put(field, 'http://test.com'); 
 			}
 		}	
 	}
