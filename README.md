@@ -31,16 +31,17 @@ The same syntax is used for custom objects:
 
 `Custom_Object__c customObject = (Custom_Object__c)SmartFactory.createSObject('Custom_Object__c');`   
 
-To create Sobject with your preferred values for specific fields:
-```java
-// Create a simple map for field name and value mappings, as shown below : 
-// Key : Field API Name 
-// Value : Field Values 
-Map<String, Object> accValues = new Map<String, Object> {
-                        'AnnualRevenue' => 20000.00, 'Description' => 'My Account Description', 'Phone' => '123-234-2233'
-											};
-Account acc = (Account)SmartFactory.createSObject('Account', accValues);
-```
+To create Sobject with your preferred values for specific fields, prepare a Map with following structure :
+
+ * Key : Field API Name 
+ * Value : Required Field Value
+ 
+`Map<String, Object> accValues = new Map<String, Object> {'AnnualRevenue' => 20000.00, 'Description' => 'My Account Description', 'Phone' => '123-234-2233'};`
+
+Once this is done, create sobject using SmartFactory as before, just pass this newly created map as second argument. Same is shown below :
+
+`Account acc = (Account)SmartFactory.createSObject('Account', accValues);`
+
 
 See SmartFactory_Test for additional examples.
 
@@ -53,10 +54,11 @@ TODO comments note areas for additional development. Key areas include:
 
 Performance Tip
 ----------------
-SmartFactory, caches simple sobjects (without references) created from it. So if 500 script lines are consumed in creating 
+SmartFactory, transparently caches simple sobjects (without references) created from it. So if 500+ script lines are consumed in creating first instance of a SobjectType, second instance might take 15+ lines only.
 
-If you are create Sobject using SmartFactory with "cascade" option true, as shown below. Then please make sure you 
-are caching the created sobject as required. The API is n
+Please note, if you are create Sobject using SmartFactory with "cascade" option true, as shown below. Then please make sure you 
+are taking care of caching the created sobject if required. This caching is typically not required in your Apex Test case, unless you are creating many instances of a single sobjectype in the same test method. Creating many instances might put you in risk of running out 200,000 script lines governor limit. 
+
 `Custom_Object__c customObject = (Custom_Object__c)SmartFactory.createSObject('Custom_Object__c', true);`
 
 Help and Discussion
