@@ -31,6 +31,17 @@ The same syntax is used for custom objects:
 
 `Custom_Object__c customObject = (Custom_Object__c)SmartFactory.createSObject('Custom_Object__c');`   
 
+To create Sobject with your preferred values for specific fields:
+```java
+// Create a simple map for field name and value mappings, as shown below : 
+// Key : Field API Name 
+// Value : Field Values 
+Map<String, Object> accValues = new Map<String, Object> {
+                        'AnnualRevenue' => 20000.00, 'Description' => 'My Account Description', 'Phone' => '123-234-2233'
+											};
+Account acc = (Account)SmartFactory.createSObject('Account', accValues);
+```
+
 See SmartFactory_Test for additional examples.
 
 Future Work
@@ -38,8 +49,15 @@ Future Work
 
 TODO comments note areas for additional development. Key areas include:
 
-1. Provide an field override map that allows callers to specify default values for specific objects and fields    
-2. Provide a recursion limit for lookups to the same object type   
+1. Provide a recursion limit for lookups to the same object type   
+
+Performance Tip
+----------------
+SmartFactory, caches simple sobjects (without references) created from it. So if 500 script lines are consumed in creating 
+
+If you are create Sobject using SmartFactory with "cascade" option true, as shown below. Then please make sure you 
+are caching the created sobject as required. The API is n
+`Custom_Object__c customObject = (Custom_Object__c)SmartFactory.createSObject('Custom_Object__c', true);`
 
 Help and Discussion
 -------------------
