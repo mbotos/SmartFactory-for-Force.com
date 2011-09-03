@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>API Tester</label>
+    <mobileReady>false</mobileReady>
+    <motif>Custom31: Car</motif>
+    <page>ApiTestPage</page>
+</CustomTab>

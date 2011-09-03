@@ -50,7 +50,7 @@ private class SmartFactory_Test {
 	}
 	
 	/**
-		Reproduces this issue
+		Reproduces this issue 
 		https://github.com/mbotos/SmartFactory-for-Force.com/issues/3
 	*/
     static testMethod void loadTestWith100PlusAccountNContacts() {

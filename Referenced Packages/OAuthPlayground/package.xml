@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>OAuthPlayground</fullName>
+    <apiAccessLevel>Unrestricted</apiAccessLevel>
+    <namespacePrefix>oauthplayground</namespacePrefix>
+    <types>
+        <members>AuthController</members>
+        <members>OAuth</members>
+        <members>OAuthTests</members>
+        <members>TestController</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>ApiTestPage</members>
+        <members>AuthPage</members>
+        <members>CompleteAuth</members>
+        <name>ApexPage</name>
+    </types>
+    <types>
+        <members>OAuth_Consumer_Playground</members>
+        <name>CustomApplication</name>
+    </types>
+    <types>
+        <members>OAuthService__c.Access_Token_URL__c</members>
+        <members>OAuthService__c.Authorization_URL__c</members>
+        <members>OAuthService__c.Consumer_Key__c</members>
+        <members>OAuthService__c.Consumer_Secret__c</members>
+        <members>OAuthService__c.Request_Token_URL__c</members>
+        <members>OAuth_Token__c.OAuth_Service__c</members>
+        <members>OAuth_Token__c.Owner__c</members>
+        <members>OAuth_Token__c.isAccess__c</members>
+        <members>OAuth_Token__c.secret__c</members>
+        <members>OAuth_Token__c.token__c</members>
+        <members>Saved_URL__c.OAuth_Service__c</members>
+        <members>Saved_URL__c.body__c</members>
+        <members>Saved_URL__c.isform__c</members>
+        <members>Saved_URL__c.method__c</members>
+        <members>Saved_URL__c.url__c</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>OAuthService__c</members>
+        <members>OAuth_Token__c</members>
+        <members>Saved_URL__c</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>API_Tester</members>
+        <members>Authorize</members>
+        <members>OAuthService__c</members>
+        <name>CustomTab</name>
+    </types>
+    <types>
+        <members>OAuthService__c-OAuth Service Layout</members>
+        <members>OAuth_Token__c-OAuth Token Layout</members>
+        <members>Saved_URL__c-Saved URL Layout</members>
+        <name>Layout</name>
+    </types>
+    <types>
+        <members>OAuthService__c.All</members>
+        <name>ListView</name>
+    </types>
+    <version>20.0</version>
+</Package>

@@ -1,0 +1,4 @@
+<apex:page controller="oauthplayground.AuthController" action="{!completeAuthorization}">
+    <apex:outputText rendered="{!authSuccess}" value="Authorization successful"/>
+    <apex:outputText rendered="{!(!authSuccess)}" value="Not Authorized: {!message}"/>
+</apex:page>

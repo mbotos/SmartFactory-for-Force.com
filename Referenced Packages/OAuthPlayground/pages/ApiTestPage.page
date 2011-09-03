@@ -1,0 +1,27 @@
+<apex:page controller="oauthplayground.TestController">
+<apex:outputText value="{!message}"/><p/>
+<apex:form >
+	<apex:selectList value="{!selectedService}" size="1">
+    	<apex:selectOptions value="{!services}"/>
+    	<apex:actionSupport event="onchange" rerender="RequestComponents"/>
+	</apex:selectList>
+	<apex:outputPanel id="RequestComponents">
+	<apex:selectList size="1" id="savedURLsComp" value="{!selectedSavedURL}">
+		<apex:selectOptions value="{!savedURLs}"/>
+    	<apex:actionSupport event="onchange" action="{!loadURL}" rerender="RequestComponents"/>
+	</apex:selectList>
+		<br/><br/>
+	<apex:selectList value="{!method}" size="1">
+    	<apex:selectOptions value="{!methodList}"/>
+	</apex:selectList>
+	URL: <apex:inputText id="urlTextComp" value="{!url}" size="80"/>
+	<apex:commandButton action="{!execute}" value="Send"/>
+	<apex:commandButton action="{!saveURL}" value="Save" rerender="savedURLsComp"/>
+	<p/>
+	POST parameters: <apex:inputText value="{!postParam}" size="88"/>
+	<p/>
+	<apex:inputTextarea value="{!body}" rows="30" cols="100"/>
+	</apex:outputPanel>
+
+</apex:form>
+</apex:page>

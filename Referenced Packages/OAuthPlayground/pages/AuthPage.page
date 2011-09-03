@@ -1,0 +1,10 @@
+<apex:page controller="oauthplayground.AuthController">
+<apex:form >
+<apex:selectList value="{!service}" size="1">
+    <apex:selectOptions value="{!services}"/>
+</apex:selectList>
+<apex:commandButton action="{!authorize}" value="Authorize" id="authButton"/>
+<p/>
+<apex:outputText rendered="{!message!=null}" value="Problem: {!message}"/>
+</apex:form>
+</apex:page>
