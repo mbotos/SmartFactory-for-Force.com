@@ -50,7 +50,7 @@ private class SmartFactory_Test {
 	}
 	
 	/**
-		Reproduces this issue 
+		Reproduces this issue
 		https://github.com/mbotos/SmartFactory-for-Force.com/issues/3
 	*/
     static testMethod void loadTestWith100PlusAccountNContacts() {
@@ -59,4 +59,49 @@ private class SmartFactory_Test {
 		for (Integer idx = 0; idx <= 101; idx++)
     		Contact cont = (Contact)SmartFactory.createSObject('Contact');    		
     }
+    
+    /**
+    */
+    static testMethod void testFieldValueOverride() {
+    	Map<String, Object> accValues = new Map<String, Object> {
+												'AnnualRevenue' => 20000.00,
+												'Description' => 'My Account Description',
+												 'Phone' => '123-234-2233'
+											};
+    	Account acc = (Account)SmartFactory.createSObject('Account', accValues);
+		for (String fld: accValues.keySet()) {
+			System.assertEquals(accValues.get(fld), acc.get(fld));
+		}
+		
+		// it comes 454 here
+		System.debug('Scripts Consumed:' + Limits.getScriptStatements());
+				
+		accValues = new Map<String, Object> {
+												'NumberOfEmployees' => 2000,
+												'Site' => 'www.tgerm.com',
+												 'Fax' => '123-234-2233'
+											};
+		acc = (Account)SmartFactory.createSObject('Account', accValues);
+		for (String fld: accValues.keySet()) {
+			System.assertEquals(accValues.get(fld), acc.get(fld));
+		}
+		// Phone should be using the default value, instead of the one created previously
+		// this will make sure fresh object from template is used.
+		System.assertEquals(SmartFactory.FieldTypeValueMapping.get(Schema.DisplayType.Phone.name()), acc.Phone);
+		
+		// it comes 467, so we improved a lot with caching for the same operation
+		System.debug('Scripts Consumed II:' + Limits.getScriptStatements());
+    }
+    
+    /**
+    	Changed the default picklist value to "Education" for Account>Industury.
+    	Code before was picking up the wrong first value i.e. Agriculture
+    	Note: commenting out this test case, as all SFDC orgs will not have the 
+    	same default value
+    static testMethod void testAccountPicklistDefaultValue() {
+    	Account acc = (Account)SmartFactory.createSObject('Account');
+    	System.assertEquals('Education',  acc.Industry);
+    }
+    */
+    
 }
