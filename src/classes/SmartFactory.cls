@@ -28,16 +28,20 @@ public with sharing class SmartFactory {
 	private static final Map<String, String> DefaultPicklistValue = new Map<String, String>();
 	
 	// can't map by Schema.sObjectType, use object name string instead
-	static map<string, set<string>> excludedFields = new map<string, set<string>>{
-		'All' => new set<string>{'OwnerId', 'LastModifiedById'},
+	public static map<string, set<string>> ExcludedFields = new map<string, set<string>>{
+		'All' => new set<string>{'OwnerId', 'LastModifiedById', 'CreatedById', 'LastModifiedDate', 'CreatedDate'},
 		'Account' => new set<string>{'FirstName', 'LastName'}
 	};
+	
+	// include nillable fields
+	public static map<string, set<string>> IncludedFields = new map<string, set<string>>();
 	
 	public static SObject createSObject(string objectType) {
 		return createSObject(objectType, false);
 	}
 	
 	public static SObject createSObject(string objectType, boolean cascade) {
+		System.debug('Creating ' + objectType);
 		Schema.sObjectType token = GlobalDescribe.get(objectType);
 		if (token == null) {
 			throw new UnsupportedObjectTypeException('Unsupported ObjectType ' + objectType);
@@ -88,11 +92,16 @@ public with sharing class SmartFactory {
 	}
 	
 	static boolean isExcludedField(Schema.DescribeFieldResult fieldDescribe) {
-		return excludedFields.get('All').contains(fieldDescribe.getName());
+		return ExcludedFields.get('All').contains(fieldDescribe.getName());
 	}
 	
 	static boolean isExcludedField(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
-		set<string> fields = excludedFields.get(obj.getSObjectType().getDescribe().getName());
+		set<string> fields = ExcludedFields.get(obj.getSObjectType().getDescribe().getName());
+		return fields == null ? false : fields.contains(fieldDescribe.getName());
+	}
+	
+	static boolean isIncludedField(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
+		set<string> fields = includedFields.get(obj.getSObjectType().getDescribe().getName());
 		return fields == null ? false : fields.contains(fieldDescribe.getName());
 	}
 	
@@ -106,12 +115,21 @@ public with sharing class SmartFactory {
 		Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
 		
 		if (fieldDescribe.isCreateable() && 
-			((!fieldDescribe.isNillable() || FillAllFields) || 
-				(fieldDescribe.getType() == Schema.DisplayType.Reference && cascade)) && // always fill references with cascade
-			!isExcludedField(fieldDescribe) &&
-			!isExcludedField(obj, fieldDescribe) &&
-			!isPersonAccountField(fieldDescribe)) {
-				
+			(
+				isIncludedField(obj, fieldDescribe) || 
+				(
+					(
+						(!fieldDescribe.isNillable() || 
+						FillAllFields) || 
+						(fieldDescribe.getType() == Schema.DisplayType.Reference && cascade) // always fill references with cascade
+					) && 
+					!isExcludedField(fieldDescribe) &&
+					!isExcludedField(obj, fieldDescribe) &&
+					!isPersonAccountField(fieldDescribe)
+				)
+			 )
+			) {
+			
 			if (fieldDescribe.getType() == Schema.DisplayType.base64) {
 				obj.put(field, blob.valueOf('a'));
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Boolean) {
@@ -130,6 +148,8 @@ public with sharing class SmartFactory {
 				obj.put(field, 'test@test.com');
 			} else if (fieldDescribe.getType() == Schema.DisplayType.EncryptedString) {
 				obj.put(field, 's');
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Id) {
+				System.debug('Id field ' + fieldDescribe.getName());
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Integer) {
 				obj.put(field, 0);
 			} else if (fieldDescribe.getType() == Schema.DisplayType.MultiPicklist) {
@@ -149,8 +169,9 @@ public with sharing class SmartFactory {
 					setRecordType(obj);
 				} else if (cascade && referenceObjectType != obj.getSObjectType().getDescribe().getName()) {
 					// TODO avoid infinite loop for same-type references
-					//System.debug('Creating reference to ' + referenceObjectType);
+					System.debug('Creating reference to ' + referenceObjectType + ' for field ' + obj.getSObjectType().getDescribe().getName() + '.' + fieldDescribe.getName());
 					SObject reference = createSObject(referenceObjectType);
+					System.debug('Inserting ' + reference);
 					insert reference;
 					obj.put(field, reference.Id);
 				}
@@ -160,13 +181,15 @@ public with sharing class SmartFactory {
 				obj.put(field, Time.newInstance(0, 0, 0, 0)); 
 			} else if (fieldDescribe.getType() == Schema.DisplayType.URL) {
 				obj.put(field, 'http://test.com'); 
+			} else {
+				System.debug('Unhandled field type ' + fieldDescribe.getType());
 			}
 		}	
 	}
 	
 	static void setRecordType(SObject obj) {
 		List<Schema.RecordTypeInfo> recordTypes = obj.getSObjectType().getDescribe().getRecordTypeInfos();
-		
+
 		if (recordTypes.size() > 1) { // all objects have default Master type
 			//System.debug('RecordTypes ' + recordTypes);
 			for (Schema.RecordTypeInfo recordType : recordTypes) {
