@@ -6,8 +6,9 @@ SmartFactory aims to provide test data objects with all required fields and obje
 The idea came from writing unit tests for unfamiliar orgs, where setting up test data might mean digging through a large hierarchy of lookup relationships and
 required fields. Instead, SmartFactory uses the Describe metadata to populate all fields with data of the right type. For lookup fields, it creates an appropriate object and then uses that object's id.
 
-The initial version won the [Mavens Consulting](http://mavens.force.com/) 2011 hackathon. As a 1-day project, the current state is more a proof of concept; please
-see Future Work if you'd like to contribute to developing into a fully functional solution.
+[The Evolution of Test Data](http://mavens.force.com/conversation/the-evolution-of-test-data) provides an introduction to the problem and SmartFactory's solution.
+
+The initial version won the [Mavens Consulting](http://mavens.force.com/) 2011 hackathon. 
 
 Installation
 ------------
