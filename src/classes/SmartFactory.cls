@@ -40,14 +40,15 @@ public with sharing class SmartFactory {
 		return createSObject(objectType, false);
 	}
 	
-	public static List<SObject> createSObjectList(String objectType, Integer numberOfObjects) {
+	public static List<SObject> createSObjectList(String objectType, boolean cascade, Integer numberOfObjects) {
 		
 		List<SObject> sos = new List<SObject>();
-		for( Integer i=0; i<numberOfObject; i++ )
-			sos.add(createSObject(objectType, false, i);
+		for( Integer i=0; i<numberOfObjects; i++ )
+			sos.add(createSObject(objectType, cascade, i));
+		return sos;  
 	}
-	
-	public static SObject createSObject(String objectType, boolean cascade) {
+
+	public static SObject createSObject(String objectType, boolean cascade, Integer counter) {
 		System.debug('Creating ' + objectType);
 		Schema.sObjectType token = GlobalDescribe.get(objectType);
 		if (token == null) {
@@ -57,10 +58,14 @@ public with sharing class SmartFactory {
 		SObject obj = token.newSObject();		
 		
 		for (Schema.SObjectField field : fieldMapFor(objectType).values()) {
-			setFieldValue(obj, field, cascade);
+			setFieldValue(obj, field, cascade, counter);
 		}
 		
 		return obj;
+	}
+	
+	public static SObject createSObject(String objectType, boolean cascade) {
+		return createSObject(objectType, cascade, 1);
 	}
 	
 	/**
