@@ -18,7 +18,7 @@
 private class SmartFactory_Test {
 	static {
 		SmartFactory.FillAllFields = true; // increase test coverage without creating custom objects
-	}
+	}  
 	
 	static testMethod void createsSingleObjectWithSingleRequiredStringField() {
 		Account account = (Account)SmartFactory.createSObject('Account');
@@ -48,6 +48,17 @@ private class SmartFactory_Test {
 			System.assert(true);
 		}
 	}
+	
+	static testMethod void creating401UniqueRecords() {
+		
+		List<SObject> contactsAsSObjects = SmartFactory.createSObjectList('Contact', false, 401);
+		insert contactsAsSObjects;
+		for (SObject s : contactsAsSObjects)
+		{
+			Contact c = (Contact) s;
+			System.assert(c.Id != null);
+		}
+	}  
 	
 	/**
 		Reproduces this issue
