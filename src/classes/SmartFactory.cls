@@ -27,20 +27,28 @@ public with sharing class SmartFactory {
 	// Value: first picklist value
 	private static final Map<String, String> DefaultPicklistValue = new Map<String, String>();
 	
-	// can't map by Schema.sObjectType, use object name string instead
-	public static map<string, set<string>> ExcludedFields = new map<string, set<string>>{
-		'All' => new set<string>{'OwnerId', 'LastModifiedById', 'CreatedById', 'LastModifiedDate', 'CreatedDate'},
-		'Account' => new set<string>{'FirstName', 'LastName'}
+	// can't map by Schema.sObjectType, use object name String instead
+	public static map<String, set<String>> ExcludedFields = new map<String, set<String>>{
+		'All' => new set<String>{'OwnerId', 'LastModifiedById', 'CreatedById', 'LastModifiedDate', 'CreatedDate'},
+		'Account' => new set<String>{'FirstName', 'LastName'}
 	};
 	
 	// include nillable fields
-	public static map<string, set<string>> IncludedFields = new map<string, set<string>>();
+	public static map<String, set<String>> IncludedFields = new map<String, set<String>>();
 	
-	public static SObject createSObject(string objectType) {
+	public static SObject createSObject(String objectType) {
 		return createSObject(objectType, false);
 	}
 	
-	public static SObject createSObject(string objectType, boolean cascade) {
+	public static List<SObject> createSObjectList(String objectType, boolean cascade, Integer numberOfObjects) {
+		
+		List<SObject> sos = new List<SObject>();
+		for( Integer i=0; i<numberOfObjects; i++ )
+			sos.add(createSObject(objectType, cascade, i));
+		return sos;  
+	}
+
+	public static SObject createSObject(String objectType, boolean cascade, Integer counter) {
 		System.debug('Creating ' + objectType);
 		Schema.sObjectType token = GlobalDescribe.get(objectType);
 		if (token == null) {
@@ -50,10 +58,14 @@ public with sharing class SmartFactory {
 		SObject obj = token.newSObject();		
 		
 		for (Schema.SObjectField field : fieldMapFor(objectType).values()) {
-			setFieldValue(obj, field, cascade);
+			setFieldValue(obj, field, cascade, counter);
 		}
 		
 		return obj;
+	}
+	
+	public static SObject createSObject(String objectType, boolean cascade) {
+		return createSObject(objectType, cascade, 1);
 	}
 	
 	/**
@@ -79,12 +91,12 @@ public with sharing class SmartFactory {
 		return fieldMap;
 	}
 	
-	static string getDefaultPicklistValue(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
-		string key = obj.getSObjectType() + '.' + fieldDescribe.getName();
+	static String getDefaultPicklistValue(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
+		String key = obj.getSObjectType() + '.' + fieldDescribe.getName();
 		
 		if (!DefaultPicklistValue.containsKey(key)) {
 			List<Schema.PicklistEntry> entries = fieldDescribe.getPicklistValues();
-			string value = entries.size() > 0 ? entries[0].getValue() : null;
+			String value = entries.size() > 0 ? entries[0].getValue() : null;
 			DefaultPicklistValue.put(key, value);
 		}
 		
@@ -96,12 +108,12 @@ public with sharing class SmartFactory {
 	}
 	
 	static boolean isExcludedField(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
-		set<string> fields = ExcludedFields.get(obj.getSObjectType().getDescribe().getName());
+		set<String> fields = ExcludedFields.get(obj.getSObjectType().getDescribe().getName());
 		return fields == null ? false : fields.contains(fieldDescribe.getName());
 	}
 	
 	static boolean isIncludedField(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
-		set<string> fields = includedFields.get(obj.getSObjectType().getDescribe().getName());
+		set<String> fields = includedFields.get(obj.getSObjectType().getDescribe().getName());
 		return fields == null ? false : fields.contains(fieldDescribe.getName());
 	}
 	
@@ -163,7 +175,7 @@ public with sharing class SmartFactory {
 			} else if (fieldDescribe.getType() == Schema.DisplayType.String) {
 				obj.put(field, 'a'); 
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Reference) {
-				string referenceObjectType = fieldDescribe.getReferenceTo()[0].getDescribe().getName();
+				String referenceObjectType = fieldDescribe.getReferenceTo()[0].getDescribe().getName();
 				
 				if (referenceObjectType == 'RecordType') {
 					setRecordType(obj);
@@ -186,6 +198,83 @@ public with sharing class SmartFactory {
 			}
 		}	
 	}
+	
+	static void setFieldValue(SObject obj, Schema.SObjectField field, boolean cascade, Integer counter) {
+		Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
+		
+		if (fieldDescribe.isCreateable() && 
+			(
+				isIncludedField(obj, fieldDescribe) || 
+				(
+					(
+						(!fieldDescribe.isNillable() || 
+						FillAllFields) || 
+						(fieldDescribe.getType() == Schema.DisplayType.Reference && cascade) // always fill references with cascade
+					) && 
+					!isExcludedField(fieldDescribe) &&
+					!isExcludedField(obj, fieldDescribe) &&
+					!isPersonAccountField(fieldDescribe)
+				)
+			 )
+			) {
+			
+			if (fieldDescribe.getType() == Schema.DisplayType.base64) {
+				obj.put(field, blob.valueOf(counter.format()));
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Boolean) {
+				obj.put(field, false);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Combobox) {
+				obj.put(field, counter.format());
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Currency) {
+				obj.put(field, counter);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Date) {
+				obj.put(field, Date.today());
+			} else if (fieldDescribe.getType() == Schema.DisplayType.DateTime) {
+				obj.put(field, DateTime.now());
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Double) {
+				obj.put(field, counter);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Email) {
+				obj.put(field, 'test' + counter.format() + '@test.com');
+			} else if (fieldDescribe.getType() == Schema.DisplayType.EncryptedString) {
+				obj.put(field, 's');
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Id) {
+				//System.debug('Id field ' + fieldDescribe.getName());
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Integer) {
+				obj.put(field, counter);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.MultiPicklist) {
+				obj.put(field, getDefaultPicklistValue(obj, fieldDescribe));
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Percent) {
+				obj.put(field, counter);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Phone) {
+				obj.put(field, '123-456-7890');
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Picklist) {
+				obj.put(field, getDefaultPicklistValue(obj, fieldDescribe));
+			} else if (fieldDescribe.getType() == Schema.DisplayType.String) {
+				obj.put(field, counter.format()); 
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Reference) {
+				String referenceObjectType = fieldDescribe.getReferenceTo()[0].getDescribe().getName();
+				
+				if (referenceObjectType == 'RecordType') {
+					setRecordType(obj);
+				} else if (cascade && referenceObjectType != obj.getSObjectType().getDescribe().getName()) {
+					// TODO avoid infinite loop for same-type references
+					System.debug('Creating reference to ' + referenceObjectType + ' for field ' + obj.getSObjectType().getDescribe().getName() + '.' + fieldDescribe.getName());
+					SObject reference = createSObject(referenceObjectType);
+					System.debug('Inserting ' + reference);
+					insert reference;
+					obj.put(field, reference.Id);
+				}
+			} else if (fieldDescribe.getType() == Schema.DisplayType.TextArea) {
+				obj.put(field, counter.format()); 
+			} else if (fieldDescribe.getType() == Schema.DisplayType.Time) {
+				obj.put(field, Time.newInstance(0, 0, 0, 0)); 
+			} else if (fieldDescribe.getType() == Schema.DisplayType.URL) {
+				obj.put(field, 'http://test' + counter + '.com'); 
+			} else {
+				System.debug('Unhandled field type ' + fieldDescribe.getType());
+			}
+		}	
+	}
+	
 	
 	static void setRecordType(SObject obj) {
 		List<Schema.RecordTypeInfo> recordTypes = obj.getSObjectType().getDescribe().getRecordTypeInfos();
