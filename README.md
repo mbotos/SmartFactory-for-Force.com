@@ -17,7 +17,7 @@ For an easy, 1-click installation: [SmartFactory for Force.com on Code Share](ht
 
 To use the source code with a Salesforce org: [How To Use Github and the Force.com IDE](http://blog.sforce.com/sforce/2011/04/how-to-use-git-github-force-com-ide-open-source-labs-apps.html)  
 
-To prevent the large number of system calls from filling the debug log, you may also want to set logging filter overrides for the SmartFactory class. (Setup - Develop - Apex Classes - Smart Factory - Log Filters - System = NONE)
+To prevent the large number of system calls from filling the debug log, you may also want to set logging filter overrides for the SmartFactory class. (Setup - Develop - Apex Classes - SmartFactory - Log Filters - System = NONE)
 
 Usage
 -----  
