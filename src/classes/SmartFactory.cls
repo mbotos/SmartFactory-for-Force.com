@@ -118,9 +118,14 @@ public with sharing class SmartFactory {
 	}
 	
 	static boolean isPersonAccountField(Schema.DescribeFieldResult fieldDescribe) {
-        Boolean CustomPerson = fieldDescribe.isCustom() && fieldDescribe.getName().endsWith('pc');
-        Boolean StandardPerson = !fieldDescribe.isCustom() && fieldDescribe.getName().startsWith('Person');
-		return (CustomPerson || StandardPerson);
+                Boolean isPersonAccountEnabled = fieldMapFor('Account').get('IsPersonAccount') != null;
+                set<string> skipPersonAccountFields = new set<string>{ 'Salutation' };
+            
+                Boolean CustomPerson = fieldDescribe.isCustom() && fieldDescribe.getName().endsWith('pc');
+                Boolean StandardPerson = !fieldDescribe.isCustom() && fieldDescribe.getName().startsWith('Person');
+		
+                return CustomPerson || StandardPerson || 
+                    (isPersonAccountEnabled && skipPersonAccountFields.contains(fieldDescribe.getName()));
 	}
 	
 	static void setFieldValue(SObject obj, Schema.SObjectField field, boolean cascade) {
