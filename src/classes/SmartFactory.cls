@@ -181,6 +181,8 @@ public with sharing class SmartFactory {
 				obj.put(field, '123-456-7890');
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Picklist) {
 				obj.put(field, getDefaultPicklistValue(obj, fieldDescribe));
+			} else if (fieldDescribe.getName() == 'UserName' && fieldDescribe.getType() == Schema.DisplayType.String) {
+				obj.put(field, 'a@a.com');
 			} else if (fieldDescribe.getType() == Schema.DisplayType.String) {
 				obj.put(field, counter.format()); 
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Reference) {
