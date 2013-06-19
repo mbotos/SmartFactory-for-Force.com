@@ -16,32 +16,35 @@
 
 public with sharing class SmartFactory {
 	public static boolean FillAllFields = false;
-	
+
 	// Key : SobjectAPIName  For ex. Account 
 	// Value : Map<String, Schema.SObjectField>, field map (k:fieldname, v:Schema.Sobjectfield)
+	public static Profile userProfile = [Select Id from Profile where Name = 'System Administrator'];
+
 	private static final Map<String, Map<String, Schema.SObjectField>> FieldMapCache = new Map<String, Map<String, Schema.SObjectField>>();
-	
+
 	private static final Map<String, Schema.SObjectType> GlobalDescribe = Schema.getGlobalDescribe();
 
 	// Key: sobject.field
 	// Value: first picklist value
 	private static final Map<String, String> DefaultPicklistValue = new Map<String, String>();
-	
+
 	// can't map by Schema.sObjectType, use object name String instead
 	public static map<String, set<String>> ExcludedFields = new map<String, set<String>>{
 		'All' => new set<String>{'OwnerId', 'LastModifiedById', 'CreatedById', 'LastModifiedDate', 'CreatedDate'},
-		'Account' => new set<String>{'FirstName', 'LastName'}
+		'Account' => new set<String>{'FirstName', 'LastName'},
+		'User' => new set<String>{'IsActive','DelegatedApproverId','CallCenterId','ContactId','DelegatedApproverId','ManagerId','UserRoleId','FederationIdentifier'}
 	};
-	
+
 	// include nillable fields
 	public static map<String, set<String>> IncludedFields = new map<String, set<String>>();
-	
+
 	public static SObject createSObject(String objectType) {
 		return createSObject(objectType, false);
 	}
-	
+
 	public static List<SObject> createSObjectList(String objectType, boolean cascade, Integer numberOfObjects) {
-		
+
 		List<SObject> sos = new List<SObject>();
 		for( Integer i=0; i<numberOfObjects; i++ )
 			sos.add(createSObject(objectType, cascade, i));
@@ -54,32 +57,32 @@ public with sharing class SmartFactory {
 		if (token == null) {
 			throw new UnsupportedObjectTypeException('Unsupported ObjectType ' + objectType);
 		}
-		
+
 		SObject obj = token.newSObject();		
-		
+
 		for (Schema.SObjectField field : fieldMapFor(objectType).values()) {
 			setFieldValue(obj, field, cascade, counter);
 		}
-		
+
 		return obj;
 	}
-	
+
 	public static SObject createSObject(String objectType, boolean cascade) {
 		return createSObject(objectType, cascade, 1);
 	}
-	
+
 	/**
 		Returns a field map for a given sobject. 
-		
+
 		Note : this method is kept public for Test cases to share the same field map info, without requiring a field desribe.
-		
+
 		@param objectType sobject api name for ex. Account
 		@returns FieldMap [Key:FieldName,Value:Schema.SObjectField]
 	*/
 	public static  Map<String, Schema.SObjectField> fieldMapFor(String objectType) {
 		Map<String, Schema.SObjectField> fieldMap = null;
 		String normalizedObjectType = objectType.toLowerCase();
-		
+
 		if (FieldMapCache.containsKey(normalizedObjectType)) {
 			fieldMap = FieldMapCache.get(normalizedObjectType);
 		} else {
@@ -87,54 +90,54 @@ public with sharing class SmartFactory {
 			// cache it for next use
 			FieldMapCache.put(normalizedObjectType, fieldMap);
 		}
-		
+
 		return fieldMap;
 	}
-	
+
 	static String getDefaultPicklistValue(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
 		String key = obj.getSObjectType() + '.' + fieldDescribe.getName();
-		
+
 		if (!DefaultPicklistValue.containsKey(key)) {
 			List<Schema.PicklistEntry> entries = fieldDescribe.getPicklistValues();
 			String value = entries.size() > 0 ? entries[0].getValue() : null;
 			DefaultPicklistValue.put(key, value);
 		}
-		
+
 		return DefaultPicklistValue.get(key);
 	}
-	
+
 	static boolean isExcludedField(Schema.DescribeFieldResult fieldDescribe) {
 		return ExcludedFields.get('All').contains(fieldDescribe.getName());
 	}
-	
+
 	static boolean isExcludedField(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
 		set<String> fields = ExcludedFields.get(obj.getSObjectType().getDescribe().getName());
 		return fields == null ? false : fields.contains(fieldDescribe.getName());
 	}
-	
+
 	static boolean isIncludedField(SObject obj, Schema.DescribeFieldResult fieldDescribe) {
 		set<String> fields = includedFields.get(obj.getSObjectType().getDescribe().getName());
 		return fields == null ? false : fields.contains(fieldDescribe.getName());
 	}
-	
+
 	static boolean isPersonAccountField(Schema.DescribeFieldResult fieldDescribe) {
                 Boolean isPersonAccountEnabled = fieldMapFor('Account').get('IsPersonAccount') != null;
                 set<string> skipPersonAccountFields = new set<string>{ 'Salutation' };
             
                 Boolean CustomPerson = fieldDescribe.isCustom() && fieldDescribe.getName().endsWith('pc');
                 Boolean StandardPerson = !fieldDescribe.isCustom() && fieldDescribe.getName().startsWith('Person');
-		
+
                 return CustomPerson || StandardPerson || 
                     (isPersonAccountEnabled && skipPersonAccountFields.contains(fieldDescribe.getName()));
 	}
-	
+
 	static void setFieldValue(SObject obj, Schema.SObjectField field, boolean cascade) {
 		setFieldValue(obj, field, cascade, 0);
 	}
-	
+
 	static void setFieldValue(SObject obj, Schema.SObjectField field, boolean cascade, Integer counter) {
 		Schema.DescribeFieldResult fieldDescribe = field.getDescribe();
-		
+
 		if (fieldDescribe.isCreateable() && 
 			(
 				isIncludedField(obj, fieldDescribe) || 
@@ -150,7 +153,7 @@ public with sharing class SmartFactory {
 				)
 			 )
 			) {
-			
+
 			if (fieldDescribe.getType() == Schema.DisplayType.base64) {
 				obj.put(field, blob.valueOf(counter.format()));
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Boolean) {
@@ -181,13 +184,15 @@ public with sharing class SmartFactory {
 				obj.put(field, '123-456-7890');
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Picklist) {
 				obj.put(field, getDefaultPicklistValue(obj, fieldDescribe));
-			} else if (fieldDescribe.getName() == 'UserName' && fieldDescribe.getType() == Schema.DisplayType.String) {
-				obj.put(field, 'a@a.com');
+			} else if (fieldDescribe.getName() == 'CommunityNickname' && fieldDescribe.getType() == Schema.DisplayType.String) { 
+				obj.put(field, 'test'+ string.valueof(math.roundtolong(math.random()*1000000)) ); 
+			} else if (fieldDescribe.getName() == 'UserName' && fieldDescribe.getType() == Schema.DisplayType.String) { 
+				obj.put(field, 'test'+ string.valueof(Userinfo.getOrganizationId())+ string.valueof(math.roundtolong(math.random()*1000000))+ string.valueof(Datetime.now()).replace('-','').replace(':','').replace(' ','')+'@test.com'); // was a@a.com
 			} else if (fieldDescribe.getType() == Schema.DisplayType.String) {
 				obj.put(field, counter.format()); 
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Reference) {
 				String referenceObjectType = fieldDescribe.getReferenceTo()[0].getDescribe().getName();
-				
+
 				if (referenceObjectType == 'RecordType') {
 					setRecordType(obj);
 				} else if (cascade && referenceObjectType != obj.getSObjectType().getDescribe().getName()) {
@@ -197,6 +202,9 @@ public with sharing class SmartFactory {
 					System.debug('Inserting ' + reference);
 					insert reference;
 					obj.put(field, reference.Id);
+				}
+				else if (referenceObjectType == 'Profile') { 
+					obj.put(field,userProfile.Id);
 				}
 			} else if (fieldDescribe.getType() == Schema.DisplayType.TextArea) {
 				obj.put(field, counter.format()); 
@@ -209,8 +217,8 @@ public with sharing class SmartFactory {
 			}
 		}	
 	}
-	
-	
+
+
 	static void setRecordType(SObject obj) {
 		List<Schema.RecordTypeInfo> recordTypes = obj.getSObjectType().getDescribe().getRecordTypeInfos();
 
@@ -222,6 +230,6 @@ public with sharing class SmartFactory {
 				}
 			}
 		}
-		
+
 	}
 }
