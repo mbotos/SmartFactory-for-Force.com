@@ -48,28 +48,4 @@ private class SmartFactory_Test {
 			System.assert(true);
 		}
 	}
-	
-	static testMethod void creating401UniqueRecords() {
-		
-		List<SObject> contactsAsSObjects = SmartFactory.createSObjectList('Contact', false, 401);
-		insert contactsAsSObjects;
-		for (SObject s : contactsAsSObjects)
-		{
-			Contact c = (Contact) s;
-			System.assert(c.Id != null);
-		}
-	}  
-	
-	/**
-		Reproduces this issue
-		https://github.com/mbotos/SmartFactory-for-Force.com/issues/3
-	*/
-/*
-    static testMethod void loadTestWith100PlusAccountNContacts() {
-    	for (Integer idx = 0; idx <= 101; idx++)
-    		Account account = (Account)SmartFactory.createSObject('Account');
-		for (Integer idx = 0; idx <= 101; idx++)
-    		Contact cont = (Contact)SmartFactory.createSObject('Contact');    		
-    }
-*/
 }
