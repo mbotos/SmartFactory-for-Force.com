@@ -25,6 +25,11 @@ public with sharing class SmartFactory {
 
 	private static final Map<String, Schema.SObjectType> GlobalDescribe = Schema.getGlobalDescribe();
 
+	// Default Country and State
+	// When Country and State Picklists are enabled, cannot dynamically resolve which States are within a Country
+	public static string DefaultCountry = 'United States';
+	public static string DefaultState = 'Pennsylvania';
+
 	// Key: sobject.field
 	// Value: first picklist value
 	private static final Map<String, String> DefaultPicklistValue = new Map<String, String>();
@@ -154,7 +159,11 @@ public with sharing class SmartFactory {
 			 )
 			) {
 
-			if (fieldDescribe.getType() == Schema.DisplayType.base64) {
+			if (fieldDescribe.getName().endsWith('Country')) {
+				obj.put(field, DefaultCountry);
+			} else if (fieldDescribe.getName().endsWith('State')) {
+				obj.put(field, DefaultState);
+			} else if (fieldDescribe.getType() == Schema.DisplayType.base64) {
 				obj.put(field, blob.valueOf(counter.format()));
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Boolean) {
 				obj.put(field, false);

@@ -13,9 +13,9 @@ The initial version won the [Mavens Consulting](http://mavens.force.com/) 2011 h
 Installation
 ------------
 
-For an easy, 1-click installation: [SmartFactory for Force.com on Code Share](http://developer.force.com/codeshare/ProjectPage?id=a063000000Db0CSAAZ) 
+For an easy, 1-click installation: [SmartFactory Unmanaged Package](https://login.salesforce.com/packaging/installPackage.apexp?p0=04ti0000000LGLn) ([sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04ti0000000LGLn))
 
-To use the source code with a Salesforce org: [How To Use Github and the Force.com IDE](http://blog.sforce.com/sforce/2011/04/how-to-use-git-github-force-com-ide-open-source-labs-apps.html)  
+To use the source code with a Salesforce org: [GitHub Salesforce Deploy Tool](https://githubsfdeploy.herokuapp.com/?owner=mbotos&repo=SmartFactory-Testing-for-Force.com)
 
 To prevent the large number of system calls from filling the debug log, you may also want to set logging filter overrides for the SmartFactory class. (Setup - Develop - Apex Classes - SmartFactory - Log Filters - System = NONE)
 
