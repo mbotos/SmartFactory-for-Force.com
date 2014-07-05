@@ -204,8 +204,9 @@ public with sharing class SmartFactory {
 
 				if (referenceObjectType == 'RecordType') {
 					setRecordType(obj);
-				} else if (cascade && referenceObjectType != obj.getSObjectType().getDescribe().getName()) {
-					// TODO avoid infinite loop for same-type references
+                } else if (cascade && referenceObjectType != obj.getSObjectType().getDescribe().getName() &&
+                            referenceObjectType !='BusinessHours') {
+                    // TODO avoid infinite loop for same-type references
 					System.debug('Creating reference to ' + referenceObjectType + ' for field ' + obj.getSObjectType().getDescribe().getName() + '.' + fieldDescribe.getName());
 					SObject reference = createSObject(referenceObjectType);
 					System.debug('Inserting ' + reference);
