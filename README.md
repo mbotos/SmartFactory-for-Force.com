@@ -1,23 +1,37 @@
 SmartFactory for Force.com
 ======================================
 
-SmartFactory aims to provide test data objects with all required fields and object lookups pre-populated. 
+SmartFactory dynamically creates test data hierarchies with all required fields and relationships pre-populated for Salesforce.com. 
 
-The idea came from writing unit tests for unfamiliar orgs, where setting up test data might mean digging through a large hierarchy of lookup relationships and
-required fields. Instead, SmartFactory uses the Describe metadata to populate all fields with data of the right type. For lookup fields, it creates an appropriate object and then uses that object's id.
+How often have you wasted hours reverse-engineering a new schema just to create data for a unit test?
 
-[The Evolution of Test Data](http://mavens.force.com/conversation/the-evolution-of-test-data) provides an introduction to the problem and SmartFactory's solution.
+    Task__c testTask = new Task__c();
+    ERROR: Field Desciption__c required on Task__c
 
-The initial version won the [Mavens Consulting](http://mavens.force.com/) 2011 hackathon. 
+    Task__c testTask = new Task__c(Description__c = 'Create unit test data');`
+    ERROR: Lookup relationship Project__c required on Task__c`
+
+    Project__c testProject = new Project__c();
+    Task__c testTask = new Task__c(Project__c = testProject, Description__c = 'Create unit test data');
+    ERROR: Field Status__c required on Project__c
+    ...
+
+Watch SmartFactory dynamically use the Describe metadata to populate all required fields with valid data and create any related objects: 
+
+    Task__c testTask = (Task__c)SmartFactory.createSObject('Task__c');
+
+[The Evolution of Test Data](http://mavens.force.com/conversation/the-evolution-of-test-data) provides more background on the problem and SmartFactory's solution.
+
+SmartFactory's first version won the [Mavens Consulting](http://mavens.force.com/) 2011 Hackathon in less than a single day of coding. 
 
 Installation
 ------------
 
-For an easy, 1-click installation: [SmartFactory Unmanaged Package](https://login.salesforce.com/packaging/installPackage.apexp?p0=04ti0000000LGLn) ([sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04ti0000000LGLn))
+For easy, 1-click installation: [SmartFactory Unmanaged Package](https://login.salesforce.com/packaging/installPackage.apexp?p0=04ti0000000LGLn)  ([sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04ti0000000LGLn))
 
 To use the source code with a Salesforce org: [GitHub Salesforce Deploy Tool](https://githubsfdeploy.herokuapp.com/?owner=mbotos&repo=SmartFactory-Testing-for-Force.com)
 
-To prevent the large number of system calls from filling the debug log, you may also want to set logging filter overrides for the SmartFactory class. (Setup - Develop - Apex Classes - SmartFactory - Log Filters - System = NONE)
+To prevent the large number of system calls from filling your debug log, you can set logging filter overrides for the SmartFactory class: Setup - Develop - Apex Classes - SmartFactory - Log Filters - System = NONE.
 
 Usage
 -----  
@@ -26,7 +40,7 @@ Just use SmartFactory in your tests to create objects:
 
 `Account account = (Account)SmartFactory.createSObject('Account');` 
 
-To cascade and create lookup objects:
+To cascade and create objects for lookup and master-detail relationships:
 
 `Contact contact = (Contact)SmartFactory.createSObject('Contact', true);`
 
