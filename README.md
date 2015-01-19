@@ -48,7 +48,7 @@ The same syntax is used for custom objects:
 
 `Custom_Object__c customObject = (Custom_Object__c)SmartFactory.createSObject('Custom_Object__c');`   
 
-See SmartFactory_Test for additional examples.
+See [SmartFactory_Test](https://github.com/mbotos/SmartFactory-for-Force.com/blob/master/src/classes/SmartFactory_Test.cls) for additional examples.
 
 Future Work
 ----------- 
