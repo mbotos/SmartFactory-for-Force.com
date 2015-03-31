@@ -50,6 +50,21 @@ The same syntax is used for custom objects:
 
 See [SmartFactory_Test](https://github.com/mbotos/SmartFactory-for-Force.com/blob/master/src/classes/SmartFactory_Test.cls) for additional examples.
 
+Validation Rules
+----------------
+
+To set specific values to pass your custom Validation Rules, wrap SmartFactory with your own class like this:
+```java
+public class TestObjectFactory {
+  public static Account createAccount() {
+    Account account = (Account)SmartFactory.createSObject('Account');
+    account.Customer_Terms__c = 'Net 30';
+    return account;
+  }
+}
+```
+You can then call that reusable method from your tests. If you have validation rules on Account or Contact, you may also need to modify SmartFactory_Test.
+
 Future Work
 ----------- 
 
