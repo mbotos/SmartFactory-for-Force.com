@@ -210,7 +210,9 @@ public with sharing class SmartFactory {
 
 				if (referenceObjectType == 'RecordType') {
 					setRecordType(obj);
-                } else if (cascade && referenceObjectType != obj.getSObjectType().getDescribe().getName() &&
+                }else if (referenceObjectType == 'Profile') { 
+					obj.put(field,userProfile.Id);
+				} else if (cascade && referenceObjectType != obj.getSObjectType().getDescribe().getName() &&
                             referenceObjectType !='BusinessHours') {
                     // TODO avoid infinite loop for same-type references
 					System.debug('Creating reference to ' + referenceObjectType + ' for field ' + obj.getSObjectType().getDescribe().getName() + '.' + fieldDescribe.getName());
@@ -218,9 +220,6 @@ public with sharing class SmartFactory {
 					System.debug('Inserting ' + reference);
 					insert reference;
 					obj.put(field, reference.Id);
-				}
-				else if (referenceObjectType == 'Profile') { 
-					obj.put(field,userProfile.Id);
 				}
 			} else if (fieldDescribe.getType() == Schema.DisplayType.TextArea) {
 				obj.put(field, counter.format()); 
