@@ -28,7 +28,9 @@ public with sharing class SmartFactory {
 	// Default Country and State
 	// When Country and State Picklists are enabled, cannot dynamically resolve which States are within a Country
 	public static string DefaultCountry = 'United States';
+	public static string DefaultCountryCode = 'US';
 	public static string DefaultState = 'Pennsylvania';
+	public static string DefaultStateCode = 'PA';
 
 	// Key: sobject.field
 	// Value: first picklist value
@@ -163,6 +165,10 @@ public with sharing class SmartFactory {
 				obj.put(field, DefaultCountry);
 			} else if (fieldDescribe.getName().endsWith('State')) {
 				obj.put(field, DefaultState);
+			} else if (fieldDescribe.getName().endsWith('CountryCode')) {
+				obj.put(field, DefaultCountryCode);
+			} else if (fieldDescribe.getName().endsWith('StateCode')) {
+				obj.put(field, DefaultStateCode);
 			} else if (fieldDescribe.getType() == Schema.DisplayType.base64) {
 				obj.put(field, blob.valueOf(counter.format()));
 			} else if (fieldDescribe.getType() == Schema.DisplayType.Boolean) {
@@ -204,7 +210,9 @@ public with sharing class SmartFactory {
 
 				if (referenceObjectType == 'RecordType') {
 					setRecordType(obj);
-                } else if (cascade && referenceObjectType != obj.getSObjectType().getDescribe().getName() &&
+                }else if (referenceObjectType == 'Profile') { 
+					obj.put(field,userProfile.Id);
+				} else if (cascade && referenceObjectType != obj.getSObjectType().getDescribe().getName() &&
                             referenceObjectType !='BusinessHours') {
                     // TODO avoid infinite loop for same-type references
 					System.debug('Creating reference to ' + referenceObjectType + ' for field ' + obj.getSObjectType().getDescribe().getName() + '.' + fieldDescribe.getName());
@@ -212,9 +220,6 @@ public with sharing class SmartFactory {
 					System.debug('Inserting ' + reference);
 					insert reference;
 					obj.put(field, reference.Id);
-				}
-				else if (referenceObjectType == 'Profile') { 
-					obj.put(field,userProfile.Id);
 				}
 			} else if (fieldDescribe.getType() == Schema.DisplayType.TextArea) {
 				obj.put(field, counter.format()); 
