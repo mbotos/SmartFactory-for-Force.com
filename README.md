@@ -50,6 +50,24 @@ The same syntax is used for custom objects:
 
 See [SmartFactory_Test](https://github.com/mbotos/SmartFactory-for-Force.com/blob/master/src/classes/SmartFactory_Test.cls) for additional examples.
 
+Include or Exclude Fields
+-------------------------
+
+To fill only required and included fields:
+
+    SmartFactory.FillAllFields = false;
+    SmartFactory.IncludedFields.put('Account', 'AccountNumber');
+    
+    Account account = (Account)SmartFactory.createSObject('Account');
+    
+To fill all fields but those excluded:
+
+    SmartFactory.FillAllFields = true;
+    SmartFactory.ExcludedFields.put('Account', 'AccountNumber');
+    
+    Account account = (Account)SmartFactory.createSObject('Account');
+
+
 Validation Rules
 ----------------
 
