@@ -1,7 +1,12 @@
-SmartFactory for Force.com
-======================================
+Salesforce Test Data Generator
+==============================
 
-SmartFactory dynamically creates test data hierarchies with all required fields and relationships pre-populated for Salesforce.com. 
+Salesforce test data generator fills lookups, master-detail relationships, and required fields. 
+
+Native Force.com Apex code using dynamic metadata.
+
+Quickly Generate Lookups, Master-Detail Relationships, and Required Fields
+--------------------------------------------------------------------------
 
 How often have you wasted hours reverse-engineering a new schema just to create data for a unit test?
 
@@ -20,11 +25,16 @@ Watch SmartFactory dynamically use the Describe metadata to populate all require
 
     Task__c testTask = (Task__c)SmartFactory.createSObject('Task__c');
 
+Learn Salesforce Testing Best Practices
+---------------------------------------
+
+[3 Principles of Salesforce Testing](http://alvorden.com/salesforce-testing-best-practices?utm_source=github&utm_medium=social&utm_term=&utm_content=salesforce-testing-best-practices&utm_campaign=smartfactory) includes production code by Salesforce MVP Matthew Botos.
+
 [The Evolution of Test Data](http://mavens.force.com/conversation/the-evolution-of-test-data) provides more background on the problem and SmartFactory's solution.
 
 SmartFactory's first version won the [Mavens Consulting](http://mavens.force.com/) 2011 Hackathon in less than a single day of coding. 
 
-Installation
+1-Click Installation
 ------------
 
 For easy, 1-click installation: [SmartFactory Unmanaged Package](https://login.salesforce.com/packaging/installPackage.apexp?p0=04ti0000000LGLn)  ([sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04ti0000000LGLn))
@@ -33,7 +43,7 @@ To use the source code with a Salesforce org: [GitHub Salesforce Deploy Tool](ht
 
 To prevent the large number of system calls from filling your debug log, you can set logging filter overrides for the SmartFactory class: Setup - Develop - Apex Classes - SmartFactory - Log Filters - System = NONE.
 
-Usage
+Easy 1-Line Usage
 -----  
 
 Just use SmartFactory in your tests to create objects:
@@ -49,6 +59,9 @@ The same syntax is used for custom objects:
 `Custom_Object__c customObject = (Custom_Object__c)SmartFactory.createSObject('Custom_Object__c');`   
 
 See [SmartFactory_Test](https://github.com/mbotos/SmartFactory-for-Force.com/blob/master/src/classes/SmartFactory_Test.cls) for additional examples.
+
+Powerful Options
+----------------
 
 Include or Exclude Fields
 -------------------------
