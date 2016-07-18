@@ -37,11 +37,7 @@ SmartFactory's first version won the [Mavens Consulting](http://mavens.force.com
 1-Click Installation
 ------------
 
-For easy, 1-click installation: [SmartFactory Unmanaged Package](https://login.salesforce.com/packaging/installPackage.apexp?p0=04ti0000000LGLn)  ([sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04ti0000000LGLn))
-
-To use the source code with a Salesforce org: [GitHub Salesforce Deploy Tool](https://githubsfdeploy.herokuapp.com/?owner=mbotos&repo=SmartFactory-Testing-for-Force.com)
-
-To prevent the large number of system calls from filling your debug log, you can set logging filter overrides for the SmartFactory class: Setup - Develop - Apex Classes - SmartFactory - Log Filters - System = NONE.
+[1-click installation packages are sponsored by Alvorden](http://alvorden.com/install-smartfactory?utm_source=github&utm_medium=smartfactory).
 
 Easy 1-Line Usage
 -----  
@@ -95,6 +91,11 @@ public class TestObjectFactory {
 }
 ```
 You can then call that reusable method from your tests. If you have validation rules on Account or Contact, you may also need to modify SmartFactory_Test.
+
+Logging
+-------
+
+To prevent the large number of system calls from filling your debug log, you can set logging filter overrides for the SmartFactory class: Setup - Develop - Apex Classes - SmartFactory - Log Filters - System = NONE.
 
 Future Work
 ----------- 
