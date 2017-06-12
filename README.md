@@ -34,11 +34,6 @@ Learn Salesforce Testing Best Practices
 
 SmartFactory's first version won the [Mavens Consulting](http://mavens.force.com/) 2011 Hackathon in less than a single day of coding. 
 
-1-Click Installation
-------------
-
-[1-click installation packages are sponsored by Alvorden](http://alvorden.com/install-smartfactory?utm_source=github&utm_medium=smartfactory).
-
 Easy 1-Line Usage
 -----  
 
